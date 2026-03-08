@@ -94,6 +94,60 @@ mantou rules list            # list all 43 rules
 mantou rules show CFG-001    # inspect a single rule
 ```
 
+### Real-World Output (Sanitized)
+
+```text
+$ mantou scan --text --include-info
+
+Mantou 0.1.0 — OpenClaw Security Posture Scan
+Scanned: 2026-03-08T14:35:48.420967+00:00  |  Duration: 384ms  |  Platform: darwin
+OpenClaw status: detected_config_only
+
+Findings: 21 total  (3 critical, 1 high, 0 medium, 0 low, 17 info)
+
+  [CRITICAL] CHN-005 · config
+  Discord group/guild policy is open
+  channels.discord.groupPolicy=open means any Discord server can add and use your agent.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: open
+  Fix: Set channels.discord.groupPolicy=allowlist and restrict to specific guild IDs.
+
+  [CRITICAL] TOOL-001 · config
+  Shell denylist absent or empty
+  tools.shell.denylist is missing or empty. The agent can execute any shell command without restriction.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: True
+  Fix: Add a denylist with at minimum: ["rm -rf", "curl | sh", "wget | sh", "chmod 777", "dd if="]
+
+  [CRITICAL] TOOL-005 · config
+  Filesystem deny list missing sensitive paths
+  tools.filesystem.deny is absent or does not include all of: ~/.ssh, ~/.aws, ~/.openclaw/secrets.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: True
+  Fix: Add to tools.filesystem.deny: ["~/.ssh", "~/.aws", "~/.openclaw/secrets", "~/.gnupg"].
+
+  [HIGH] TOOL-002 · config
+  No confirm-before-exec list defined
+  tools.confirmBeforeExecuting is missing or empty. Destructive commands will execute without user confirmation.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: True
+  Fix: Define tools.confirmBeforeExecuting with all destructive commands (rm, mv, chmod, curl with -o, etc.).
+
+  [INFO] ADV-001 · network
+  Gateway port exposure unknown (manual check required)
+  Mantou cannot run `ss` to verify port exposure. Run: ss -tulpn | grep openclaw — confirm the gateway is not bound to 0.0.0.0 unexpectedly.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: loopback
+  Fix: Run `ss -tulpn | grep openclaw` and verify the gateway is only accessible from intended interfaces.
+
+  [INFO] ADV-002 · network
+  Firewall status not verified (manual check required)
+  Mantou cannot run privileged commands. Run: sudo ufw status (Linux) to confirm the gateway port is filtered from external access.
+  Resource: file:///Users/<user>/.openclaw/openclaw.json
+  Evidence: loopback
+  Fix: Run `sudo ufw status` and confirm UWF is enabled with the gateway port blocked from untrusted sources.
+```
+
 ### CI/CD
 
 ```yaml
