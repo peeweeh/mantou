@@ -1,0 +1,98 @@
+[
+  {
+    "id": "PERM-001",
+    "enabled": true,
+    "description": "OpenClaw directory is world-readable",
+    "tags": ["permissions", "directory"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw" },
+    "probe": { "type": "stat" },
+    "condition": { "operator": "world_readable" },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "OpenClaw directory world-readable",
+      "detail": "~/.openclaw has permissions that allow other users on the system to read its contents.",
+      "remediation": "chmod 700 ~/.openclaw"
+    }
+  },
+  {
+    "id": "PERM-002",
+    "enabled": true,
+    "description": "openclaw.json config file is world-readable",
+    "tags": ["permissions", "config"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw/openclaw.json" },
+    "probe": { "type": "stat" },
+    "condition": { "operator": "world_readable" },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "openclaw.json is world-readable",
+      "detail": "~/.openclaw/openclaw.json contains configuration including auth tokens and can be read by any system user.",
+      "remediation": "chmod 600 ~/.openclaw/openclaw.json"
+    }
+  },
+  {
+    "id": "PERM-003",
+    "enabled": true,
+    "description": "Sessions directory is world-readable",
+    "tags": ["permissions", "sessions"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw/sessions" },
+    "probe": { "type": "stat" },
+    "condition": { "operator": "world_readable" },
+    "finding": {
+      "severity": "medium",
+      "category": "permissions",
+      "title": "Sessions directory world-readable",
+      "detail": "~/.openclaw/sessions contains conversation history and may contain sensitive information.",
+      "remediation": "chmod 700 ~/.openclaw/sessions"
+    }
+  },
+  {
+    "id": "PERM-005",
+    "enabled": true,
+    "description": "Credentials directory is world-readable",
+    "tags": ["permissions", "credentials"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw/channels" },
+    "probe": { "type": "stat" },
+    "condition": { "operator": "world_readable" },
+    "finding": {
+      "severity": "critical",
+      "category": "permissions",
+      "title": "Credentials directory world-readable",
+      "detail": "~/.openclaw/channels contains channel credentials (Telegram tokens, WhatsApp creds, etc.).",
+      "remediation": "chmod 700 ~/.openclaw/channels"
+    }
+  },
+  {
+    "id": "PERM-006",
+    "enabled": true,
+    "description": "Secrets .env file too permissive",
+    "tags": ["permissions", "secrets"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw/secrets/.env" },
+    "probe": { "type": "permissions" },
+    "condition": { "operator": "not_equals", "value": "0o600" },
+    "finding": {
+      "severity": "critical",
+      "category": "permissions",
+      "title": "Secrets .env file too permissive",
+      "detail": "~/.openclaw/secrets/.env contains API keys and should be readable only by the owner.",
+      "remediation": "chmod 600 ~/.openclaw/secrets/.env"
+    }
+  },
+  {
+    "id": "PERM-007",
+    "enabled": true,
+    "description": "WhatsApp creds.json too permissive",
+    "tags": ["permissions", "whatsapp", "credentials"],
+    "target": { "type": "fs_perm", "path": "~/.openclaw/channels/whatsapp/creds.json" },
+    "probe": { "type": "permissions" },
+    "condition": { "operator": "not_equals", "value": "0o600" },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "WhatsApp creds.json too permissive",
+      "detail": "~/.openclaw/channels/whatsapp/creds.json contains WhatsApp session credentials.",
+      "remediation": "chmod 600 ~/.openclaw/channels/whatsapp/creds.json"
+    }
+  }
+]

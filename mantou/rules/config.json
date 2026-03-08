@@ -1,0 +1,162 @@
+[
+  {
+    "id": "CFG-001",
+    "enabled": true,
+    "description": "Gateway bound to all interfaces without strong auth",
+    "tags": ["gateway", "auth", "network"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.bind" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "in", "value": ["0.0.0.0", "::", "*"] },
+    "finding": {
+      "severity": "critical",
+      "category": "network",
+      "title": "Gateway exposed without strong auth",
+      "detail": "gateway.bind is set to a public address. Combined with weak or absent auth this exposes OpenClaw to the internet.",
+      "remediation": "Set gateway.bind to 127.0.0.1 or use a VPN/SSH tunnel. If public exposure is required, ensure gateway.auth.enabled=true and a strong token."
+    }
+  },
+  {
+    "id": "CFG-002",
+    "enabled": true,
+    "description": "Gateway exposed on public address without TLS",
+    "tags": ["gateway", "tls", "network"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.tls.enabled" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": false },
+    "finding": {
+      "severity": "high",
+      "category": "network",
+      "title": "Gateway exposed without TLS",
+      "detail": "gateway.tls.enabled is false. Traffic between clients and the gateway is unencrypted.",
+      "remediation": "Enable TLS: set gateway.tls.enabled=true and configure a certificate. Use Let's Encrypt or a self-signed cert behind a reverse proxy."
+    }
+  },
+  {
+    "id": "CFG-003",
+    "enabled": true,
+    "description": "No authentication on exposed gateway",
+    "tags": ["gateway", "auth"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.auth.mode" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "in", "value": ["none", "open", null] },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "No authentication on gateway",
+      "detail": "gateway.auth.mode is none/open. Anyone who can reach the gateway has full agent access.",
+      "remediation": "Set gateway.auth.mode to oauth2, oidc, or mcp-token and configure credentials."
+    }
+  },
+  {
+    "id": "CFG-004",
+    "enabled": true,
+    "description": "Unverified skills allowed to install",
+    "tags": ["skills", "supply-chain"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.skills.install.allow_unverified" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "skills",
+      "title": "Unverified skills can be installed",
+      "detail": "skills.install.allow_unverified=true means npm packages without integrity verification can be loaded.",
+      "remediation": "Set skills.install.allow_unverified=false. Only install skills from trusted sources with pinned versions."
+    }
+  },
+  {
+    "id": "CFG-005",
+    "enabled": true,
+    "description": "Public URL uses HTTP (no TLS)",
+    "tags": ["gateway", "tls", "network"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.public_url" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "contains", "value": "http://" },
+    "finding": {
+      "severity": "high",
+      "category": "network",
+      "title": "Public URL uses HTTP — no TLS",
+      "detail": "gateway.public_url starts with http:// meaning clients connecting via this URL have no encryption.",
+      "remediation": "Change public_url to https://. Ensure TLS termination happens at gateway or reverse proxy."
+    }
+  },
+  {
+    "id": "CFG-010",
+    "enabled": true,
+    "description": "Debug logging enabled in production",
+    "tags": ["logging", "data-retention"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.logging.level" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "in", "value": ["debug", "trace", "verbose"] },
+    "finding": {
+      "severity": "medium",
+      "category": "data_retention",
+      "title": "Debug logging enabled",
+      "detail": "logging.level is set to debug/trace/verbose. This may log sensitive message content and credentials to disk.",
+      "remediation": "Set logging.level=info or higher in production. Rotate and purge existing debug logs."
+    }
+  },
+  {
+    "id": "CFG-012",
+    "enabled": true,
+    "description": "Gateway auth disabled",
+    "tags": ["gateway", "auth"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.auth.enabled" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": false },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Gateway authentication disabled",
+      "detail": "gateway.auth.enabled=false disables all authentication on the gateway endpoint.",
+      "remediation": "Set gateway.auth.enabled=true and configure a strong token (see CFG-013)."
+    }
+  },
+  {
+    "id": "CFG-013",
+    "enabled": true,
+    "description": "Gateway auth token too short (< 32 chars)",
+    "tags": ["gateway", "auth", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.gateway.auth.token" },
+    "probe": { "type": "string_length" },
+    "condition": { "operator": "string_length_lt", "value": 32 },
+    "finding": {
+      "severity": "critical",
+      "category": "secrets",
+      "title": "Gateway auth token too short",
+      "detail": "gateway.auth.token is shorter than 32 characters. Short tokens are vulnerable to brute-force.",
+      "remediation": "Generate a random 64-char token: openssl rand -hex 32"
+    }
+  },
+  {
+    "id": "CFG-014",
+    "enabled": true,
+    "description": "Model temperature set above 1.0",
+    "tags": ["model", "config"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.agents.defaults.models.temperature" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "gt", "value": 1.0 },
+    "finding": {
+      "severity": "medium",
+      "category": "config",
+      "title": "Model temperature above 1.0",
+      "detail": "agents.defaults.models.temperature > 1.0 produces erratic, unpredictable outputs that compound unpredictably with tool use.",
+      "remediation": "Set temperature to 0.7–1.0 for balanced creative/reliable output."
+    }
+  },
+  {
+    "id": "CFG-016",
+    "enabled": true,
+    "description": "Expensive model assigned to heartbeat agent",
+    "tags": ["model", "cost", "heartbeat"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.heartbeat.agent" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "contains_any", "value": ["opus", "gpt-4o", "o1", "claude-3-5"] },
+    "finding": {
+      "severity": "high",
+      "category": "config",
+      "title": "Expensive model on heartbeat agent",
+      "detail": "A large/expensive model is assigned to the heartbeat agent. Short intervals + large models = high API cost.",
+      "remediation": "Assign a cheap fast model (claude-haiku, gpt-4o-mini) to heartbeat. Reserve powerful models for user-initiated tasks."
+    }
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "CHN-001",
+    "enabled": true,
+    "description": "WhatsApp DM policy set to open",
+    "tags": ["channels", "whatsapp", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.whatsapp.dmPolicy" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": "open" },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "WhatsApp DM policy is open",
+      "detail": "channels.whatsapp.dmPolicy=open means any WhatsApp user can send commands to your agent.",
+      "remediation": "Set channels.whatsapp.dmPolicy=allowlist and enumerate trusted numbers in dmAllowlist."
+    }
+  },
+  {
+    "id": "CHN-002",
+    "enabled": true,
+    "description": "Telegram DM policy set to open",
+    "tags": ["channels", "telegram", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.telegram.dmPolicy" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": "open" },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Telegram DM policy is open",
+      "detail": "channels.telegram.dmPolicy=open means any Telegram user can DM your agent.",
+      "remediation": "Set channels.telegram.dmPolicy=allowlist and enumerate trusted Telegram user IDs."
+    }
+  },
+  {
+    "id": "CHN-003",
+    "enabled": true,
+    "description": "Telegram group policy set to open",
+    "tags": ["channels", "telegram", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.telegram.groupPolicy" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": "open" },
+    "finding": {
+      "severity": "medium",
+      "category": "config",
+      "title": "Telegram group policy is open",
+      "detail": "channels.telegram.groupPolicy=open means any Telegram group can add and command your agent.",
+      "remediation": "Set channels.telegram.groupPolicy=allowlist and specify allowed group IDs."
+    }
+  },
+  {
+    "id": "CHN-004",
+    "enabled": true,
+    "description": "Discord DM policy open",
+    "tags": ["channels", "discord", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.discord.dmPolicy" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": "open" },
+    "finding": {
+      "severity": "high",
+      "category": "config",
+      "title": "Discord DM policy is open",
+      "detail": "channels.discord.dmPolicy=open means any Discord user can DM your agent.",
+      "remediation": "Set channels.discord.dmPolicy=allowlist or off. Document permitted DM users."
+    }
+  },
+  {
+    "id": "CHN-005",
+    "enabled": true,
+    "description": "Discord guild/group policy open",
+    "tags": ["channels", "discord", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.discord.groupPolicy" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": "open" },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Discord group/guild policy is open",
+      "detail": "channels.discord.groupPolicy=open means any Discord server can add and use your agent.",
+      "remediation": "Set channels.discord.groupPolicy=allowlist and restrict to specific guild IDs."
+    }
+  }
+]

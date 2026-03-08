@@ -1,0 +1,50 @@
+[
+  {
+    "id": "OS-001",
+    "enabled": true,
+    "description": "OpenClaw process running as root",
+    "tags": ["os", "runtime", "privilege"],
+    "target": { "type": "command", "command_id": "id_u", "platform": ["linux", "darwin"] },
+    "probe": { "type": "stdout" },
+    "condition": { "operator": "equals", "value": "0" },
+    "finding": {
+      "severity": "critical",
+      "category": "runtime",
+      "title": "Running as root",
+      "detail": "Mantou is being run as uid 0 (root). OpenClaw itself should not run as root — any agent mistake becomes a root-level action.",
+      "remediation": "Create a dedicated non-root service account for OpenClaw. Run: sudo useradd -r -s /bin/false openclaw"
+    }
+  },
+  {
+    "id": "OS-002",
+    "enabled": true,
+    "description": "Running inside a Docker container",
+    "tags": ["os", "container", "docker"],
+    "target": { "type": "filesystem", "path": "/.dockerenv" },
+    "probe": { "type": "path_exists" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "info",
+      "category": "runtime",
+      "title": "Running inside Docker container",
+      "detail": "/.dockerenv detected — OpenClaw is running inside a container. Verify container hardening (see OS-003 / OS-004).",
+      "remediation": "Ensure container runs with --read-only, --no-new-privileges, and no Docker socket mount."
+    }
+  },
+  {
+    "id": "OS-006",
+    "enabled": true,
+    "description": "OpenClaw version — audit trail",
+    "tags": ["os", "version", "audit"],
+    "target": { "type": "command", "command_id": "openclaw_version", "platform": ["linux", "darwin"] },
+    "probe": { "type": "stdout" },
+    "condition": { "operator": "always_true" },
+    "finding": {
+      "severity": "info",
+      "category": "runtime",
+      "title": "OpenClaw version detected",
+      "detail": "OpenClaw version captured for audit trail. Ensure automatic updates are enabled or a review schedule is in place.",
+      "remediation": "No action required unless the version is significantly outdated."
+    }
+  }
+]

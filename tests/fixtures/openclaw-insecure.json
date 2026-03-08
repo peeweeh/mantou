@@ -1,0 +1,43 @@
+{
+  "gateway": {
+    "bind": "0.0.0.0",
+    "port": 3000,
+    "public_url": "http://example.com",
+    "tls": { "enabled": false },
+    "auth": { "enabled": false, "token": "short" }
+  },
+  "auth": { "mode": "none" },
+  "logging": { "level": "debug" },
+  "skills": { "install": { "allow_unverified": true } },
+  "agents": {
+    "defaults": {
+      "models": {
+        "provider": "custom-local",
+        "temperature": 1.5,
+        "maxTokens": 100000
+      },
+      "sandbox": { "mode": "off" }
+    },
+    "list": [
+      {
+        "id": "test-agent",
+        "name": "Test Agent",
+        "model": "ollama/qwen3.5:9b",
+        "workspace": "~/.openclaw/workspace/agents/test-agent",
+        "agentDir": "~/.openclaw/workspace/agents/test-agent"
+      }
+    ]
+  },
+  "heartbeat": { "agent": "claude-3-5-haiku", "intervalMinutes": 5 },
+  "channels": {
+    "whatsapp": { "dmPolicy": "open" },
+    "telegram": { "dmPolicy": "open", "groupPolicy": "open" },
+    "discord": { "dmPolicy": "open", "groupPolicy": "open" }
+  },
+  "tools": {
+    "filesystem": {
+      "allowRead": ["/"],
+      "allowWrite": ["/"]
+    }
+  }
+}

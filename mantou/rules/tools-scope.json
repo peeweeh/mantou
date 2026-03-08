@@ -1,0 +1,83 @@
+[
+  {
+    "id": "TOOL-001",
+    "enabled": true,
+    "description": "Shell denylist is absent or empty",
+    "tags": ["tools", "shell", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.shell.denylist" },
+    "probe": { "type": "key_absent_or_empty" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Shell denylist absent or empty",
+      "detail": "tools.shell.denylist is missing or empty. The agent can execute any shell command without restriction.",
+      "remediation": "Add a denylist with at minimum: [\"rm -rf\", \"curl | sh\", \"wget | sh\", \"chmod 777\", \"dd if=\"]"
+    }
+  },
+  {
+    "id": "TOOL-002",
+    "enabled": true,
+    "description": "No confirm-before-executing list defined",
+    "tags": ["tools", "shell", "confirmation"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.confirmBeforeExecuting" },
+    "probe": { "type": "key_absent_or_empty" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "config",
+      "title": "No confirm-before-exec list defined",
+      "detail": "tools.confirmBeforeExecuting is missing or empty. Destructive commands will execute without user confirmation.",
+      "remediation": "Define tools.confirmBeforeExecuting with all destructive commands (rm, mv, chmod, curl with -o, etc.)."
+    }
+  },
+  {
+    "id": "TOOL-003",
+    "enabled": true,
+    "description": "Filesystem read scope allows root-level access",
+    "tags": ["tools", "filesystem", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.filesystem.allowRead" },
+    "probe": { "type": "contains_value", "value": "/" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Filesystem read scope unrestricted",
+      "detail": "tools.filesystem.allowRead contains \"/\". The agent can read the entire filesystem.",
+      "remediation": "Restrict allowRead to specific directories (e.g. [\"~/.openclaw\", \"~/Documents/openclaw\"])."
+    }
+  },
+  {
+    "id": "TOOL-004",
+    "enabled": true,
+    "description": "Filesystem write scope allows root-level access",
+    "tags": ["tools", "filesystem", "access-control"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.filesystem.allowWrite" },
+    "probe": { "type": "contains_value", "value": "/" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Filesystem write scope unrestricted",
+      "detail": "tools.filesystem.allowWrite contains \"/\". The agent can write anywhere on the filesystem.",
+      "remediation": "Restrict allowWrite to a single project directory. No write access to home root or system paths."
+    }
+  },
+  {
+    "id": "TOOL-005",
+    "enabled": true,
+    "description": "Filesystem deny list missing sensitive paths",
+    "tags": ["tools", "filesystem", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.filesystem.deny" },
+    "probe": { "type": "key_absent_or_missing_paths", "paths": ["~/.ssh", "~/.aws", "~/.openclaw/secrets"] },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Filesystem deny list missing sensitive paths",
+      "detail": "tools.filesystem.deny is absent or does not include all of: ~/.ssh, ~/.aws, ~/.openclaw/secrets.",
+      "remediation": "Add to tools.filesystem.deny: [\"~/.ssh\", \"~/.aws\", \"~/.openclaw/secrets\", \"~/.gnupg\"]."
+    }
+  }
+]
+

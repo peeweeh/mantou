@@ -1,0 +1,34 @@
+[
+  {
+    "id": "FS-001",
+    "enabled": true,
+    "description": "OpenClaw config directory missing",
+    "tags": ["filesystem", "setup"],
+    "target": { "type": "path", "path": "~/.openclaw" },
+    "probe": { "type": "exists_any" },
+    "condition": { "operator": "equals", "value": false },
+    "finding": {
+      "severity": "info",
+      "category": "config",
+      "title": "OpenClaw directory not found",
+      "detail": "~/.openclaw does not exist. Mantou could not find an OpenClaw installation on this machine.",
+      "remediation": "Install OpenClaw and run it once to generate the configuration directory."
+    }
+  },
+  {
+    "id": "FS-002",
+    "enabled": true,
+    "description": "OpenClaw logs directory missing",
+    "tags": ["filesystem", "logging"],
+    "target": { "type": "path", "path": "~/.openclaw/logs" },
+    "probe": { "type": "exists_any" },
+    "condition": { "operator": "equals", "value": false },
+    "finding": {
+      "severity": "info",
+      "category": "data_retention",
+      "title": "OpenClaw logs directory not found",
+      "detail": "~/.openclaw/logs does not exist. OpenClaw may not be logging, or logs are stored elsewhere.",
+      "remediation": "Check OpenClaw logging configuration (logging.path). Ensure logs are retained for incident response."
+    }
+  }
+]

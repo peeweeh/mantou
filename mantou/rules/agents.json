@@ -1,0 +1,38 @@
+[
+  {
+    "id": "AGT-001",
+    "enabled": true,
+    "description": "Agent declared with elevated shell tools but no explicit permission boundary",
+    "tags": ["agents", "permissions", "tools"],
+    "target": { "type": "foreach_json", "file": "openclaw.json", "path": "$.agents.list[*]" },
+    "probe": { "type": "key_absent", "key": "tools" },
+    "condition": { "operator": "equals", "value": true },
+    "resource_template": "openclaw://agents/{id}",
+    "finding": {
+      "severity": "high",
+      "category": "config",
+      "resource_template": "openclaw://agents/{id}",
+      "title": "Agent has no tool permission boundary",
+      "detail": "Agent is declared without a 'tools' key specifying allowed/denied tools. No explicit permission boundary means it inherits the global default.",
+      "remediation": "Add an explicit 'tools' section to each agent definition with allowed and denied tool lists."
+    }
+  },
+  {
+    "id": "AGT-002",
+    "enabled": true,
+    "description": "Agent model not in approved list",
+    "tags": ["agents", "model"],
+    "target": { "type": "foreach_json", "file": "openclaw.json", "path": "$.agents.list[*]" },
+    "probe": { "type": "value" },
+    "condition": { "operator": "equals", "value": true },
+    "resource_template": "openclaw://agents/{id}",
+    "finding": {
+      "severity": "info",
+      "category": "config",
+      "resource_template": "openclaw://agents/{id}",
+      "title": "Agent model detected",
+      "detail": "Review agent model assignment. Ensure expensive models are not assigned to high-frequency background agents.",
+      "remediation": "Document the purpose of each agent and review model appropriateness. Use cheap models for automation, powerful models for user-facing work."
+    }
+  }
+]
