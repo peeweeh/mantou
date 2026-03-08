@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (example: v0.2.0-nightly.1)"
+        required: true
+      release_name:
+        description: "Release title"
+        required: true
+      target:
+        description: "Branch or commit to release"
+        required: false
+        default: "nightly"
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        default: true
+        type: boolean
+      generate_notes:
+        description: "Auto-generate release notes"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target }}
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          name: ${{ inputs.release_name }}
+          target_commitish: ${{ inputs.target }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: ${{ inputs.generate_notes }}
