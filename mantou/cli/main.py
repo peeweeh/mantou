@@ -3,6 +3,7 @@
 import click
 
 from mantou import __version__
+from mantou.cli.doctor import doctor_cmd
 from mantou.cli.rules import rules_cmd
 from mantou.cli.scan import scan_cmd
 
@@ -14,4 +15,5 @@ def cli() -> None:
 
 
 cli.add_command(scan_cmd, name="scan")
+cli.add_command(doctor_cmd, name="doctor")
 cli.add_command(rules_cmd, name="rules")

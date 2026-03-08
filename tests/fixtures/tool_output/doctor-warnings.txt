@@ -1,0 +1,6 @@
+openClaw 2026.3.2 (85377a2)
+
+◇  Doctor warnings
+│  - channels.discord.groupPolicy is "open". Set it to allowlist with specific guild IDs.
+│  - tools.confirmBeforeExecuting is empty. Add destructive commands.
+│  - agents.defaults.sandbox.mode is disabled. Enable sandbox where possible.

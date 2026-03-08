@@ -11,7 +11,17 @@ from pydantic import BaseModel, Field
 
 class Finding(BaseModel):
     id: str
-    source: Literal["static", "doctor", "security_audit", "llm"]
+    source: Literal[
+        "static",
+        "doctor",
+        "security_audit",
+        "security_audit_deep",
+        "status",
+        "daemon_status",
+        "gateway_status",
+        "dedup",
+        "llm",
+    ]
     phase: int
     severity: Literal["critical", "high", "medium", "low", "info"]
     category: Literal[

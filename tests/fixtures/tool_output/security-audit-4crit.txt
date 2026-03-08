@@ -1,0 +1,22 @@
+Security audit
+Summary: 4 critical · 2 warn · 1 info
+  CRITICAL Small models require sandboxing
+    Model policy is unsafe for exposed channels.
+    Fix: Enable sandbox and disable elevated tools.
+  CRITICAL Open groupPolicy with elevated tools
+    Any group can trigger powerful tools.
+    Fix: Use allowlist and disable elevated tools.
+  CRITICAL Open groupPolicy with runtime/filesystem tools
+    Runtime and filesystem access exposed.
+    Fix: Restrict tool permissions.
+  CRITICAL Discord groupPolicy='open' allows broad trigger scope
+    Any non-denied channel can trigger.
+    Fix: Set groupPolicy=allowlist.
+  WARN trustedProxies empty while bind is loopback
+    Reverse proxy headers may be misconfigured.
+    Fix: Configure trusted proxies.
+  WARN Multi-user setup with runtime/process tools
+    Process tools exposed broadly.
+    Fix: Lock down runtime/process tools.
+  INFO Version detected
+    Audit includes runtime version context.
