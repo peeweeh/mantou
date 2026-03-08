@@ -9,8 +9,8 @@ from mantou.schema import Finding
 SEVERITY_MAP: dict[str, str] = {
     "CRITICAL": "critical",
     "WARN": "high",
-    "WARNING": "high",
-    "warning": "high",
+    "WARNING": "medium",
+    "warning": "medium",
     "INFO": "info",
     "info": "info",
     "error": "critical",

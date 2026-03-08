@@ -53,6 +53,7 @@ from mantou.schema import SEVERITY_ORDER, ScanResult, ScanSummary
     "--allow-os-probes", is_flag=True, default=False, help="Allow OS probes when --root is set."
 )
 @click.option("--skip-tools", is_flag=True, default=False, help="Skip Phase 2 tool invocations.")
+@click.option("--quiet", is_flag=True, default=False, help="Suppress progress output.")
 @click.option("--no-interactive", is_flag=True, default=False, envvar="MANTOU_NO_INTERACTIVE")
 def scan_cmd(
     output_json: bool,
@@ -68,6 +69,7 @@ def scan_cmd(
     vm_user: str | None,
     allow_os_probes: bool,
     skip_tools: bool,
+    quiet: bool,
     no_interactive: bool,
 ) -> None:
     """Scan OpenClaw configuration and emit security findings."""
@@ -92,9 +94,23 @@ def scan_cmd(
         rules_dir=Path(rules_dir) if rules_dir else scanner._RULES_DIR,
     )
 
-    if skip_tools:
-        os.environ["MANTOU_SKIP_TOOLS"] = "1"
-    result = scanner.run(context, options)
+    skip_tools_effective = skip_tools or bool(os.environ.get("MANTOU_SKIP_TOOLS"))
+
+    progress = None
+    if not quiet:
+        click.echo("Starting Mantou scan...", err=True)
+
+        def _progress(message: str) -> None:
+            click.echo(f"[mantou] {message}", err=True)
+
+        progress = _progress
+
+    result = scanner.run(
+        context,
+        options,
+        skip_tools=skip_tools_effective,
+        progress=progress,
+    )
 
     # Filter findings
     min_level = SEVERITY_ORDER.get(min_severity, 0)

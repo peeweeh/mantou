@@ -18,9 +18,14 @@ def _parsed(
 
 def test_normalize_doctor_warning() -> None:
     out = normalize("doctor", [_parsed("warning")])
-    assert out[0].severity == "high"
+    assert out[0].severity == "medium"
     assert out[0].phase == 2
     assert out[0].source == "doctor"
+
+
+def test_normalize_warn_stays_high() -> None:
+    out = normalize("security_audit", [_parsed("WARN")])
+    assert out[0].severity == "high"
 
 
 def test_normalize_security_audit_critical() -> None:
