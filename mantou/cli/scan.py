@@ -89,11 +89,7 @@ def scan_cmd(
         rules_dir=Path(rules_dir) if rules_dir else scanner._RULES_DIR,
     )
 
-    try:
-        result = scanner.run(context, options)
-    except Exception as exc:
-        click.echo(f"Error: {exc}", err=True)
-        sys.exit(4)
+    result = scanner.run(context, options)
 
     # Filter findings
     min_level = SEVERITY_ORDER.get(min_severity, 0)

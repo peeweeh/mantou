@@ -32,6 +32,9 @@ dev = [
 where = ["."]
 include = ["mantou*"]
 
+[tool.setuptools.package-data]
+mantou = ["rules/*.json"]
+
 [tool.black]
 line-length = 100
 target-version = ["py311"]

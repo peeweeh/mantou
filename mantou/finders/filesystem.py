@@ -81,7 +81,10 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
             raise ProbeError(
                 rule_id="", reason="unreadable_file", detail="stat probe requires a 'path'"
             )
-        return _stat_result(_expand(raw_path, context))
+        expanded = _expand(raw_path, context)
+        if not expanded.exists():
+            return None
+        return _stat_result(expanded)
 
     if probe_type == "permissions":
         if not raw_path:
@@ -90,9 +93,7 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
             )
         expanded = _expand(raw_path, context)
         if not expanded.exists():
-            raise ProbeError(
-                rule_id="", reason="unreadable_file", detail=f"Path not found: {expanded}"
-            )
+            return None
         st = _stat_result(expanded)
         return st["mode_octal"]
 

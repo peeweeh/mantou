@@ -32,6 +32,9 @@ def evaluate(condition: Any, probe_result: Any) -> bool:
         return _coerce(probe_result) == _coerce(value)
 
     if operator == "not_equals":
+        # Missing probe values should not trigger inequality findings.
+        if probe_result is None:
+            return False
         return _coerce(probe_result) != _coerce(value)
 
     if operator == "in":
@@ -119,9 +122,6 @@ def evaluate(condition: Any, probe_result: Any) -> bool:
         if not isinstance(value, list):
             value = [value]
         return owner not in value
-
-    if operator == "not_equals":
-        return _coerce(probe_result) != _coerce(value)
 
     if operator == "and":
         if not conditions:

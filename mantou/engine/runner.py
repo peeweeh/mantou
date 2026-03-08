@@ -41,7 +41,7 @@ def run_all(
         except ProbeError as exc:
             failures.append(
                 PartialFailure(
-                    rule_id=exc.rule_id,
+                    rule_id=exc.rule_id or rule.id,
                     reason=exc.reason,  # type: ignore[arg-type]
                     detail=exc.detail,
                 )

@@ -61,11 +61,8 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
 
     # OS probes disabled in VM mode
     if getattr(context, "os_probes_disabled", False):
-        raise ProbeError(
-            rule_id="",
-            reason="unsupported_platform",
-            detail="OS probes are disabled in VM scan mode (--root). Use --allow-os-probes to override.",
-        )
+        # Graceful fallback: caller can continue with config-only checks.
+        return None
 
     cmd = COMMAND_ALLOWLIST[command_id]
     try:
@@ -76,6 +73,9 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
             timeout=COMMAND_TIMEOUT,
             shell=False,  # NEVER shell=True
         )
+        if result.returncode != 0:
+            # Non-zero command exit is non-fatal; skip this probe.
+            return None
         return result.stdout.strip()
     except subprocess.TimeoutExpired as exc:
         raise ProbeError(
@@ -83,9 +83,7 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
             reason="command_timeout",
             detail=f"Command {cmd!r} timed out after {COMMAND_TIMEOUT}s",
         ) from exc
-    except FileNotFoundError as exc:
-        raise ProbeError(
-            rule_id="",
-            reason="unreadable_file",
-            detail=f"Command not found: {cmd[0]!r}",
-        ) from exc
+    except FileNotFoundError:
+        # Missing command binary (e.g. openclaw not installed) should
+        # not fail the scan. Fall back to config-only findings.
+        return None
