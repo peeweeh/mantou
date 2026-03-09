@@ -78,5 +78,37 @@
       "detail": "channels.discord.groupPolicy=open means any Discord server can add and use your agent.",
       "remediation": "Set channels.discord.groupPolicy=allowlist and restrict to specific guild IDs."
     }
+  },
+  {
+    "id": "CHN-006",
+    "enabled": true,
+    "description": "Open group policy with elevated tools enabled",
+    "tags": ["channels", "exposure", "elevated"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "open_groups_with_elevated" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Open groupPolicy with elevated tools enabled",
+      "detail": "An open channel group policy is active while elevated tools are enabled. Prompt injection in those rooms can become a high-impact incident.",
+      "remediation": "Set groupPolicy=allowlist and keep elevated allowlists extremely tight."
+    }
+  },
+  {
+    "id": "CHN-007",
+    "enabled": true,
+    "description": "Open group policy with runtime/filesystem tools exposed",
+    "tags": ["channels", "exposure", "runtime", "filesystem"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "open_groups_with_runtime_or_fs" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Open groupPolicy with runtime/filesystem tools exposed",
+      "detail": "An open channel group policy is active while runtime and/or filesystem tools are exposed without full sandboxing.",
+      "remediation": "For open groups, prefer tools.profile=\"messaging\" (or deny runtime/fs groups), set tools.fs.workspaceOnly=true, and use agents.defaults.sandbox.mode=\"all\" for exposed agents."
+    }
   }
 ]

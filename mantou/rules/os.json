@@ -46,5 +46,27 @@
       "detail": "OpenClaw version captured for audit trail. Ensure automatic updates are enabled or a review schedule is in place.",
       "remediation": "No action required unless the version is significantly outdated."
     }
+  },
+  {
+    "id": "OS-007",
+    "enabled": true,
+    "description": "Node.js runtime below supported floor",
+    "tags": ["os", "version", "patching"],
+    "target": { "type": "command", "command_id": "node_version", "platform": ["linux", "darwin"] },
+    "probe": { "type": "stdout" },
+    "condition": {
+      "operator": "and",
+      "conditions": [
+        { "operator": "exists" },
+        { "operator": "semver_lt", "value": "20.0.0" }
+      ]
+    },
+    "finding": {
+      "severity": "high",
+      "category": "runtime",
+      "title": "Node.js version is outdated",
+      "detail": "Detected Node.js version is below 20.x LTS baseline. Older runtimes may miss security fixes used by always-on services.",
+      "remediation": "Upgrade Node.js to a current LTS release and restart OpenClaw services."
+    }
   }
 ]

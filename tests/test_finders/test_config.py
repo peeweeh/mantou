@@ -155,3 +155,203 @@ def test_probe_raises_on_malformed_json(tmp_path: Path) -> None:
     ctx = _make_context(cfg, tmp_path)
     with pytest.raises(ProbeError):
         probe(_make_target("$.gateway.bind"), _make_probe("value"), ctx)
+
+
+def test_probe_loopback_with_empty_trusted_proxies_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(json.dumps({"gateway": {"bind": "127.0.0.1"}}))
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("loopback_with_empty_trusted_proxies"),
+        ctx,
+    )
+    assert result is True
+
+
+def test_probe_loopback_with_empty_trusted_proxies_false(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "gateway": {
+                    "bind": "127.0.0.1",
+                    "trustedProxies": ["10.0.0.1"],
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("loopback_with_empty_trusted_proxies"),
+        ctx,
+    )
+    assert result is False
+
+
+def test_probe_small_models_require_sandbox_all_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "defaults": {"sandbox": {"mode": "off"}},
+                    "list": [{"id": "cheap", "model": "ollama/qwen3.5:9b"}],
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("small_models_require_sandbox_all"), ctx)
+    assert result is True
+
+
+def test_probe_small_models_require_sandbox_all_false(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "defaults": {
+                        "sandbox": {"mode": "all"},
+                        "tools": {"deny": ["group:web", "browser"]},
+                    },
+                    "list": [
+                        {
+                            "id": "cheap",
+                            "model": "ollama/qwen3.5:9b",
+                            "tools": {"allow": ["read", "write"]},
+                        }
+                    ],
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("small_models_require_sandbox_all"), ctx)
+    assert result is False
+
+
+def test_probe_open_groups_with_runtime_or_fs_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "channels": {"discord": {"groupPolicy": "open"}},
+                "agents": {
+                    "defaults": {"sandbox": {"mode": "off"}},
+                    "list": [{"id": "main", "tools": {"allow": ["exec", "read"]}}],
+                },
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("open_groups_with_runtime_or_fs"), ctx)
+    assert result is True
+
+
+def test_probe_open_groups_with_runtime_or_fs_false(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "channels": {"discord": {"groupPolicy": "allowlist"}},
+                "agents": {
+                    "defaults": {"sandbox": {"mode": "all"}},
+                    "list": [{"id": "main", "tools": {"allow": ["read"]}}],
+                },
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("open_groups_with_runtime_or_fs"), ctx)
+    assert result is False
+
+
+def test_probe_open_groups_with_elevated_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "channels": {"discord": {"groupPolicy": "open"}},
+                "tools": {"elevated": True},
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("open_groups_with_elevated"), ctx)
+    assert result is True
+
+
+def test_probe_interpreter_safebins_without_profiles_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "tools": {"exec": {"safeBins": ["python3", "grep"]}},
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("interpreter_safebins_without_profiles"),
+        ctx,
+    )
+    assert result is True
+
+
+def test_probe_interpreter_safebins_without_profiles_false(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "tools": {
+                                "exec": {
+                                    "safeBins": ["python3", "grep"],
+                                    "safeBinProfiles": {"python3": {"allow": []}},
+                                }
+                            },
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("interpreter_safebins_without_profiles"),
+        ctx,
+    )
+    assert result is False

@@ -158,5 +158,37 @@
       "detail": "A large/expensive model is assigned to the heartbeat agent. Short intervals + large models = high API cost.",
       "remediation": "Assign a cheap fast model (claude-haiku, gpt-4o-mini) to heartbeat. Reserve powerful models for user-initiated tasks."
     }
+  },
+  {
+    "id": "CFG-017",
+    "enabled": true,
+    "description": "Loopback bind with missing trustedProxies behind reverse proxy",
+    "tags": ["gateway", "proxy", "network"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "loopback_with_empty_trusted_proxies" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "medium",
+      "category": "network",
+      "title": "Reverse proxy headers are not trusted",
+      "detail": "gateway.bind is loopback and gateway.trustedProxies is empty. If you expose the Control UI through a reverse proxy, configure trusted proxies so local-client checks cannot be spoofed.",
+      "remediation": "Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only."
+    }
+  },
+  {
+    "id": "CFG-018",
+    "enabled": true,
+    "description": "Small models must use sandbox=all and keep web/browser disabled",
+    "tags": ["models", "sandbox", "web", "security"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "small_models_require_sandbox_all" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Small models require sandboxing and web tools disabled",
+      "detail": "Small models (<=300B params) are configured without full sandboxing and/or with web tools exposed. This increases prompt-injection and tool-misuse risk.",
+      "remediation": "If you must use small models, set agents.defaults.sandbox.mode=\"all\" and deny web_search/web_fetch/browser (for example: tools.deny=[\"group:web\", \"browser\"])."
+    }
   }
 ]

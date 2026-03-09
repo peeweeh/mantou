@@ -78,6 +78,22 @@
       "detail": "tools.filesystem.deny is absent or does not include all of: ~/.ssh, ~/.aws, ~/.openclaw/secrets.",
       "remediation": "Add to tools.filesystem.deny: [\"~/.ssh\", \"~/.aws\", \"~/.openclaw/secrets\", \"~/.gnupg\"]."
     }
+  },
+  {
+    "id": "TOOL-006",
+    "enabled": true,
+    "description": "Interpreter/runtime safeBins entries missing explicit profiles",
+    "tags": ["tools", "exec", "safebins", "hardening"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "interpreter_safebins_without_profiles" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "medium",
+      "category": "config",
+      "title": "safeBins includes interpreter/runtime binaries without explicit profiles",
+      "detail": "Interpreter-like safeBins entries are present without matching safeBinProfiles rules. This can broaden execution surface when argv constraints are permissive.",
+      "remediation": "Remove interpreter/runtime bins from safeBins or define hardened tools.exec.safeBinProfiles.<bin> rules."
+    }
   }
 ]
 
