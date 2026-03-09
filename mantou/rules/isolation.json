@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ISO-001",
+    "enabled": true,
+    "description": "Docker compose mounts the host docker socket",
+    "tags": ["docker", "isolation", "container"],
+    "target": {
+      "type": "text",
+      "paths": [
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml"
+      ]
+    },
+    "probe": {
+      "type": "regex_any",
+      "patterns": [
+        "/var/run/docker\\.sock"
+      ]
+    },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "runtime",
+      "title": "Docker socket mounted into container",
+      "detail": "A compose file mounts /var/run/docker.sock. Any process in that container can often control the host Docker daemon.",
+      "remediation": "Remove docker.sock mounts. If you need build/deploy workflows, isolate them in a separate trusted service."
+    }
+  },
+  {
+    "id": "ISO-002",
+    "enabled": true,
+    "description": "Compose mounts broad home directories into container",
+    "tags": ["docker", "isolation", "filesystem"],
+    "target": {
+      "type": "text",
+      "paths": [
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml"
+      ]
+    },
+    "probe": {
+      "type": "regex_any",
+      "patterns": [
+        "(?mi)^\\s*-\\s*~/:",
+        "(?mi)^\\s*-\\s*/Users/:",
+        "(?mi)^\\s*-\\s*/home/:"
+      ]
+    },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "runtime",
+      "title": "Broad home directory mount detected",
+      "detail": "Compose config appears to mount a broad home directory path into a container, exposing private keys and credentials.",
+      "remediation": "Mount only a dedicated project subdirectory, and prefer read-only mounts where possible."
+    }
+  }
+]

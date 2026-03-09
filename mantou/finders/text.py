@@ -95,11 +95,19 @@ def probe(target: TargetSpec, probe_spec: ProbeSpec, context: OpenClawContext) -
     compiled = [re.compile(p, re.IGNORECASE | re.MULTILINE) for p in raw_patterns]
 
     # Determine which files to scan
+    def _resolve_text_path(raw_path: str) -> Path:
+        p = Path(raw_path).expanduser()
+        if p.is_absolute():
+            return p
+        if context.workspace_dir:
+            return context.workspace_dir / p
+        return p
+
     files_to_scan: list[Path] = []
     if target.path:
-        files_to_scan = [Path(target.path).expanduser()]
+        files_to_scan = [_resolve_text_path(target.path)]
     elif target.paths:
-        files_to_scan = [Path(p).expanduser() for p in target.paths]
+        files_to_scan = [_resolve_text_path(p) for p in target.paths]
     elif context.prompt_files:
         files_to_scan = list(context.prompt_files)
 

@@ -34,6 +34,11 @@ KNOWN_PROBE_TYPES = frozenset(
         "key_absent_or_missing_paths",
         "string_length",
         "permissions",
+        "loopback_with_empty_trusted_proxies",
+        "small_models_require_sandbox_all",
+        "open_groups_with_runtime_or_fs",
+        "open_groups_with_elevated",
+        "interpreter_safebins_without_profiles",
     ]
 )
 
