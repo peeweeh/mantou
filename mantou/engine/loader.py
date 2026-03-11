@@ -39,6 +39,14 @@ KNOWN_PROBE_TYPES = frozenset(
         "open_groups_with_runtime_or_fs",
         "open_groups_with_elevated",
         "interpreter_safebins_without_profiles",
+        "agent_shell_safebins_present",
+        "agent_automation_safebins_present",
+        "agent_package_manager_safebins_present",
+        "agent_infra_cli_safebins_present",
+        "agent_broad_workspace_without_workspace_only",
+        "agent_high_power_tools_without_exec_ask",
+        "discord_open_thread_spawn",
+        "hardcoded_secret_value",
     ]
 )
 

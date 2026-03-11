@@ -110,5 +110,21 @@
       "detail": "An open channel group policy is active while runtime and/or filesystem tools are exposed without full sandboxing.",
       "remediation": "For open groups, prefer tools.profile=\"messaging\" (or deny runtime/fs groups), set tools.fs.workspaceOnly=true, and use agents.defaults.sandbox.mode=\"all\" for exposed agents."
     }
+  },
+  {
+    "id": "CHN-009",
+    "enabled": true,
+    "description": "Discord open group policy with thread-based subagent spawning enabled",
+    "tags": ["channels", "discord", "sessions", "exposure"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "discord_open_thread_spawn" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "config",
+      "title": "Discord can spawn subagent sessions from open groups",
+      "detail": "channels.discord.groupPolicy=open and threadBindings.spawnSubagentSessions=true allows untrusted Discord servers to trigger subagent session creation.",
+      "remediation": "Set channels.discord.groupPolicy=allowlist and disable threadBindings.spawnSubagentSessions unless explicitly required and authenticated."
+    }
   }
 ]

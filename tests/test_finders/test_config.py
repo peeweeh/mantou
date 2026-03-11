@@ -355,3 +355,217 @@ def test_probe_interpreter_safebins_without_profiles_false(tmp_path: Path) -> No
         ctx,
     )
     assert result is False
+
+
+def test_probe_agent_shell_safebins_present_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {"agents": {"list": [{"id": "a", "tools": {"exec": {"safeBins": ["bash", "grep"]}}}]}}
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("agent_shell_safebins_present"), ctx)
+    assert result is True
+
+
+def test_probe_agent_automation_safebins_present_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "tools": {"exec": {"safeBins": ["osascript", "curl"]}},
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("agent_automation_safebins_present"), ctx)
+    assert result is True
+
+
+def test_probe_agent_package_manager_safebins_present_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {"agents": {"list": [{"id": "a", "tools": {"exec": {"safeBins": ["pip3", "jq"]}}}]}}
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("agent_package_manager_safebins_present"),
+        ctx,
+    )
+    assert result is True
+
+
+def test_probe_agent_infra_cli_safebins_present_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {"agents": {"list": [{"id": "a", "tools": {"exec": {"safeBins": ["docker", "jq"]}}}]}}
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("agent_infra_cli_safebins_present"), ctx)
+    assert result is True
+
+
+def test_probe_agent_broad_workspace_without_workspace_only_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "workspace": "/Users/test/dev",
+                            "tools": {"fs": {"workspaceOnly": False}},
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("agent_broad_workspace_without_workspace_only"),
+        ctx,
+    )
+    assert result is True
+
+
+def test_probe_agent_broad_workspace_without_workspace_only_false_for_isolated_path(
+    tmp_path: Path,
+) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "workspace": "~/.openclaw/workspace/agents/a",
+                            "tools": {"fs": {"workspaceOnly": False}},
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("agent_broad_workspace_without_workspace_only"),
+        ctx,
+    )
+    assert result is False
+
+
+def test_probe_agent_high_power_tools_without_exec_ask_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "agents": {
+                    "list": [
+                        {
+                            "id": "a",
+                            "tools": {
+                                "allow": ["sessions_spawn", "read"],
+                                "exec": {"ask": "never"},
+                            },
+                        }
+                    ]
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$"),
+        _make_probe("agent_high_power_tools_without_exec_ask"),
+        ctx,
+    )
+    assert result is True
+
+
+def test_probe_discord_open_thread_spawn_true(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "channels": {
+                    "discord": {
+                        "groupPolicy": "open",
+                        "threadBindings": {"spawnSubagentSessions": True},
+                    }
+                }
+            }
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(_make_target("$"), _make_probe("discord_open_thread_spawn"), ctx)
+    assert result is True
+
+
+def test_probe_hardcoded_secret_value_skips_env_refs(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {"models": {"providers": {"trendmicro-aiendpoint": {"apiKey": "$TRENDMICRO_API_KEY"}}}}
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$.models.providers.*.apiKey"),
+        _make_probe("hardcoded_secret_value"),
+        ctx,
+    )
+    assert result is False
+
+
+def test_probe_hardcoded_secret_value_true_for_literal(tmp_path: Path) -> None:
+    from mantou.finders.config import probe
+
+    cfg = tmp_path / "openclaw.json"
+    cfg.write_text(
+        json.dumps(
+            {"models": {"providers": {"trendmicro-aiendpoint": {"apiKey": "eyJhbGci.fake.jwt"}}}}
+        )
+    )
+    ctx = _make_context(cfg, tmp_path)
+    result = probe(
+        _make_target("$.models.providers.*.apiKey"),
+        _make_probe("hardcoded_secret_value"),
+        ctx,
+    )
+    assert result is True
