@@ -123,6 +123,32 @@ def _apply_probe_transform(probe_spec: ProbeSpec, raw: Any) -> Any:
     if ptype == "interpreter_safebins_without_profiles":
         return _interpreter_safebins_without_profiles(raw)
 
+    if ptype == "agent_shell_safebins_present":
+        return _agent_safebins_contain_any(raw, {"bash", "sh", "zsh"})
+
+    if ptype == "agent_automation_safebins_present":
+        return _agent_safebins_contain_any(raw, {"osascript", "powershell", "automator"})
+
+    if ptype == "agent_package_manager_safebins_present":
+        return _agent_safebins_contain_any(raw, {"pip", "pip3", "npm", "yarn", "pnpm", "cargo"})
+
+    if ptype == "agent_infra_cli_safebins_present":
+        return _agent_safebins_contain_any(
+            raw, {"docker", "docker-compose", "aws", "kubectl", "gcloud"}
+        )
+
+    if ptype == "agent_broad_workspace_without_workspace_only":
+        return _agent_broad_workspace_without_workspace_only(raw)
+
+    if ptype == "agent_high_power_tools_without_exec_ask":
+        return _agent_high_power_tools_without_exec_ask(raw)
+
+    if ptype == "discord_open_thread_spawn":
+        return _discord_open_thread_spawn(raw)
+
+    if ptype == "hardcoded_secret_value":
+        return _hardcoded_secret_value(raw)
+
     return raw
 
 
@@ -324,6 +350,88 @@ def _interpreter_safebins_without_profiles(raw: Any) -> bool:
             if bin_name not in profiles:
                 return True
 
+    return False
+
+
+def _agent_safebins_contain_any(raw: Any, deny_bins: set[str]) -> bool:
+    config = _as_dict(raw)
+    agents = _as_dict(config.get("agents"))
+
+    for agent_raw in _as_list(agents.get("list")):
+        agent = _as_dict(agent_raw)
+        tools = _as_dict(agent.get("tools"))
+        exec_cfg = _as_dict(tools.get("exec"))
+        safe_bins = {str(x).strip().lower() for x in _as_list(exec_cfg.get("safeBins"))}
+        if safe_bins & deny_bins:
+            return True
+    return False
+
+
+def _agent_broad_workspace_without_workspace_only(raw: Any) -> bool:
+    config = _as_dict(raw)
+    agents = _as_dict(config.get("agents"))
+    isolated_prefixes = (
+        str(Path("~/.openclaw/agents").expanduser()),
+        str(Path("~/.openclaw/workspace/agents").expanduser()),
+    )
+
+    for agent_raw in _as_list(agents.get("list")):
+        agent = _as_dict(agent_raw)
+        workspace = str(agent.get("workspace", "")).strip()
+        if not workspace:
+            continue
+        tools = _as_dict(agent.get("tools"))
+        fs_cfg = _as_dict(tools.get("fs"))
+        workspace_only = bool(fs_cfg.get("workspaceOnly", False))
+        expanded_workspace = str(Path(workspace).expanduser())
+        is_isolated = any(expanded_workspace.startswith(prefix) for prefix in isolated_prefixes)
+        if not is_isolated and not workspace_only:
+            return True
+
+    return False
+
+
+def _agent_high_power_tools_without_exec_ask(raw: Any) -> bool:
+    config = _as_dict(raw)
+    agents = _as_dict(config.get("agents"))
+    high_power = {"sessions_spawn", "cron", "browser"}
+
+    for agent_raw in _as_list(agents.get("list")):
+        agent = _as_dict(agent_raw)
+        tools = _as_dict(agent.get("tools"))
+        allow = {str(x) for x in _as_list(tools.get("allow"))}
+        if not (allow & high_power):
+            continue
+        exec_cfg = _as_dict(tools.get("exec"))
+        ask = str(exec_cfg.get("ask", "")).strip().lower()
+        if ask != "always":
+            return True
+
+    return False
+
+
+def _discord_open_thread_spawn(raw: Any) -> bool:
+    config = _as_dict(raw)
+    channels = _as_dict(config.get("channels"))
+    discord = _as_dict(channels.get("discord"))
+    if str(discord.get("groupPolicy", "")).lower() != "open":
+        return False
+    thread_bindings = _as_dict(discord.get("threadBindings"))
+    return bool(thread_bindings.get("spawnSubagentSessions", False))
+
+
+def _hardcoded_secret_value(raw: Any) -> bool:
+    values = raw if isinstance(raw, list) else [raw]
+    for value in values:
+        if not isinstance(value, str):
+            continue
+        token = value.strip()
+        if not token:
+            continue
+        # Env-var references are expected placeholders, not inline secrets.
+        if token.startswith("$") or token.startswith("${"):
+            continue
+        return True
     return False
 
 

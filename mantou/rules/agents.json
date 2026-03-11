@@ -34,5 +34,101 @@
       "detail": "Review agent model assignment. Ensure expensive models are not assigned to high-frequency background agents.",
       "remediation": "Document the purpose of each agent and review model appropriateness. Use cheap models for automation, powerful models for user-facing work."
     }
+  },
+  {
+    "id": "AGT-003",
+    "enabled": true,
+    "description": "Agent safeBins includes shell interpreters",
+    "tags": ["agents", "exec", "safeBins", "permissions"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_shell_safebins_present" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "permissions",
+      "title": "Agent safeBins contains shell interpreter",
+      "detail": "At least one agent allows bash/sh/zsh in tools.exec.safeBins. This can bypass allowlist security via shell command chaining.",
+      "remediation": "Remove bash/sh/zsh from safeBins and allow only tightly scoped binaries required for the agent role."
+    }
+  },
+  {
+    "id": "AGT-004",
+    "enabled": true,
+    "description": "Agent safeBins includes automation binaries",
+    "tags": ["agents", "exec", "safeBins", "permissions"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_automation_safebins_present" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "Agent safeBins contains OS automation binary",
+      "detail": "At least one agent allows OS automation binaries (for example osascript/powershell) in safeBins. This expands host-control and secret-access surface.",
+      "remediation": "Remove automation binaries from safeBins unless explicitly required and gated by strict operator approval."
+    }
+  },
+  {
+    "id": "AGT-005",
+    "enabled": true,
+    "description": "Agent safeBins includes package managers",
+    "tags": ["agents", "exec", "safeBins", "supply-chain"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_package_manager_safebins_present" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "Agent safeBins contains package manager",
+      "detail": "At least one agent allows package managers (pip/npm/yarn/pnpm/cargo) in safeBins, which increases supply-chain execution risk.",
+      "remediation": "Remove package managers from safeBins. Install dependencies through controlled CI or prebuilt images."
+    }
+  },
+  {
+    "id": "AGT-006",
+    "enabled": true,
+    "description": "Agent safeBins includes infrastructure CLIs",
+    "tags": ["agents", "exec", "safeBins", "infra"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_infra_cli_safebins_present" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "Agent safeBins contains infrastructure CLI",
+      "detail": "At least one agent allows cloud/container CLIs (docker/aws/kubectl/gcloud) in safeBins, increasing blast radius if prompts are injected.",
+      "remediation": "Scope infra CLIs to dedicated maintenance agents only, with strict workspace limits and exec approval gating."
+    }
+  },
+  {
+    "id": "AGT-007",
+    "enabled": true,
+    "description": "Agent workspace is broad and workspaceOnly is disabled",
+    "tags": ["agents", "workspace", "filesystem"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_broad_workspace_without_workspace_only" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "permissions",
+      "title": "Broad agent workspace without fs.workspaceOnly",
+      "detail": "At least one agent uses a broad workspace path outside ~/.openclaw/agents while fs.workspaceOnly is false. This weakens filesystem isolation.",
+      "remediation": "Set workspace under ~/.openclaw/agents/<id>/workspace and enable tools.fs.workspaceOnly=true."
+    }
+  },
+  {
+    "id": "AGT-008",
+    "enabled": true,
+    "description": "High-power tools allowed without exec ask=always",
+    "tags": ["agents", "approval", "sessions", "cron", "browser"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$" },
+    "probe": { "type": "agent_high_power_tools_without_exec_ask" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "high",
+      "category": "config",
+      "title": "High-power agent tools enabled without execution approval",
+      "detail": "At least one agent has sessions_spawn/cron/browser enabled while tools.exec.ask is not set to always.",
+      "remediation": "Set tools.exec.ask=always for agents with high-power capabilities and reduce default sessions/cron exposure."
+    }
   }
 ]

@@ -190,5 +190,69 @@
       "detail": "Small models (<=300B params) are configured without full sandboxing and/or with web tools exposed. This increases prompt-injection and tool-misuse risk.",
       "remediation": "If you must use small models, set agents.defaults.sandbox.mode=\"all\" and deny web_search/web_fetch/browser (for example: tools.deny=[\"group:web\", \"browser\"])."
     }
+  },
+  {
+    "id": "CRED-002",
+    "enabled": true,
+    "description": "Telegram bot tokens are hardcoded inline in channel account config",
+    "tags": ["credentials", "telegram", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.telegram.accounts.*.botToken" },
+    "probe": { "type": "hardcoded_secret_value" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "secrets",
+      "title": "Telegram bot token hardcoded in openclaw.json",
+      "detail": "A Telegram bot token is stored inline in channels.telegram.accounts.*.botToken.",
+      "remediation": "Move bot tokens to tokenFile entries under ~/.openclaw/secrets with chmod 600 permissions."
+    }
+  },
+  {
+    "id": "CRED-003",
+    "enabled": true,
+    "description": "Discord token is hardcoded inline",
+    "tags": ["credentials", "discord", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.channels.discord.token" },
+    "probe": { "type": "hardcoded_secret_value" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "secrets",
+      "title": "Discord token hardcoded in openclaw.json",
+      "detail": "channels.discord.token contains a literal token value instead of an env var or token file.",
+      "remediation": "Use a token file or environment-variable reference and remove inline token values from openclaw.json."
+    }
+  },
+  {
+    "id": "CRED-004",
+    "enabled": true,
+    "description": "Model provider API keys are hardcoded inline",
+    "tags": ["credentials", "models", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.models.providers.*.apiKey" },
+    "probe": { "type": "hardcoded_secret_value" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "secrets",
+      "title": "Model provider API key hardcoded in openclaw.json",
+      "detail": "models.providers.*.apiKey contains a literal secret value.",
+      "remediation": "Reference API keys through environment variables or external secrets files and keep openclaw.json free of plaintext credentials."
+    }
+  },
+  {
+    "id": "CRED-005",
+    "enabled": true,
+    "description": "Web search provider API keys are hardcoded inline",
+    "tags": ["credentials", "web", "secrets"],
+    "target": { "type": "json", "file": "openclaw.json", "path": "$.tools.web.search.*.apiKey" },
+    "probe": { "type": "hardcoded_secret_value" },
+    "condition": { "operator": "equals", "value": true },
+    "finding": {
+      "severity": "critical",
+      "category": "secrets",
+      "title": "Web provider API key hardcoded in openclaw.json",
+      "detail": "tools.web.search.*.apiKey contains a literal API key value.",
+      "remediation": "Move web provider API keys to env vars or secrets files and remove inline values from config."
+    }
   }
 ]

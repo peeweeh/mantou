@@ -4,7 +4,7 @@ Local-first security posture scanner for OpenClaw agents.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Ruleset](https://img.shields.io/badge/rules-58-red)](mantou/rules/)
+[![Ruleset](https://img.shields.io/badge/rules-69-red)](mantou/rules/)
 
 Your OpenClaw setup can run shell commands, read files, talk to channels, and expose a gateway. Mantou checks that setup fast, locally, and with zero telemetry.
 
@@ -17,6 +17,9 @@ It scans for things like:
 - Over-broad filesystem access
 - Open channel policies
 - Dangerous tool settings
+- Per-agent `safeBins` escape hatches (`bash`, `osascript`, package managers, infra CLIs)
+- Inline credentials in `openclaw.json` (Telegram, Discord, model/web API keys)
+- Discord thread-based subagent spawning from open groups
 - Weak file permissions
 - Prompt-file secret leaks
 - Runtime and patch hygiene signals
@@ -38,6 +41,12 @@ Run a scan:
 
 ```bash
 mantou scan --text
+```
+
+Static-only scan, skipping Phase 2 tool invocations:
+
+```bash
+mantou scan --text --skip-tools
 ```
 
 Want only actionable signal (less advisory noise):
@@ -77,11 +86,12 @@ Findings: 7 total (5 critical, 1 high, 1 medium)
 
 ## Rules
 
-Current ruleset: **58 rules**.
+Current ruleset: **69 rules**.
 
 Main families:
 - `CFG-` gateway and config hardening
 - `CHN-` channel access boundaries
+- `AGT-` per-agent execution/workspace boundaries
 - `TOOL-` execution and filesystem limits
 - `PERM-` sensitive file and directory permissions
 - `PROMPT-` secret patterns in prompt docs
